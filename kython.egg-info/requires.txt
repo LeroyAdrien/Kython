@@ -1,5 +1,4 @@
 biopython
-itertools
 matplotlib
 ncbi-genome-download
 numpy

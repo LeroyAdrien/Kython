@@ -327,6 +327,37 @@ def NeighbourJoining(matrice_df:pd.DataFrame) -> str:
     return arbre
 
 
+"""Chi2 computation"""
+
+
+def KmerFragment(path,kmer,fragmentSize):
+	dicKmerSignature=KmerSignature(path,kmer,True)
+	dicKmerSignature=dicKmerSignature/np.sum(dicKmerSignature.values)
+	sequence=Read_Sequence(path)
+	listepval = []
+	listepos= []
+	pos=0
+	while pos<len(sequence):
+	        liste.append(pos)
+		print((pos/len(sequence))*100,"%")
+		sequenceFragment=sequence[pos:pos+fragmentSize]
+		seqCut = [sequenceFragment[i:i+kmer] for i in range(len(sequenceFragment)-(kmer-1)) ]
+		dicKmerFragment = CountCuts(seqCut,False)
+		dicComparaison = dicKmerSignature*np.sum(dicKmerFragment.values)
+		resultat,pval = chisquare(np.array(dicKmerFragment.loc[0]),np.array(dicComparaison.loc[0]))
+		listepval.append(pval)
+
+
+		if pos+fragmentSize>len(sequence):
+			fragmentSize=len(sequence)-pos
+			pos+=fragmentSize
+		else:
+			pos+=fragmentSize
+	
+	return listepval,listepos
+	
+	
+
 if __name__=="__main__":
         #Test downloading sequences
         #DownloadingSequences('./Bacteria.list','./Archea.list','./refseq/')

@@ -1992,6 +1992,7 @@ venv/lib/python3.8/site-packages/dateutil/tz/__pycache__/_factories.cpython-38.p
 venv/lib/python3.8/site-packages/dateutil/tz/__pycache__/tz.cpython-38.pyc
 venv/lib/python3.8/site-packages/dateutil/tz/__pycache__/win.cpython-38.pyc
 venv/lib/python3.8/site-packages/dateutil/zoneinfo/__init__.py
+venv/lib/python3.8/site-packages/dateutil/zoneinfo/dateutil-zoneinfo.tar
 venv/lib/python3.8/site-packages/dateutil/zoneinfo/rebuild.py
 venv/lib/python3.8/site-packages/dateutil/zoneinfo/__pycache__/__init__.cpython-38.pyc
 venv/lib/python3.8/site-packages/dateutil/zoneinfo/__pycache__/rebuild.cpython-38.pyc
@@ -8450,6 +8451,7 @@ venv/lib/python3.8/site-packages/scipy/optimize/_lsq/__pycache__/trf.cpython-38.
 venv/lib/python3.8/site-packages/scipy/optimize/_lsq/__pycache__/trf_linear.cpython-38.pyc
 venv/lib/python3.8/site-packages/scipy/optimize/_shgo_lib/__init__.py
 venv/lib/python3.8/site-packages/scipy/optimize/_shgo_lib/sobol_seq.py
+venv/lib/python3.8/site-packages/scipy/optimize/_shgo_lib/sobol_vec
 venv/lib/python3.8/site-packages/scipy/optimize/_shgo_lib/triangulation.py
 venv/lib/python3.8/site-packages/scipy/optimize/_shgo_lib/__pycache__/__init__.cpython-38.pyc
 venv/lib/python3.8/site-packages/scipy/optimize/_shgo_lib/__pycache__/sobol_seq.cpython-38.pyc
