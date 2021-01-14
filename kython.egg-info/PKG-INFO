@@ -1,10 +1,10 @@
 Metadata-Version: 1.0
 Name: kython
-Version: 0.1
+Version: 0.2.3
 Summary: Python Library to compute and plot phylogeny Kmer signatures
-Home-page: UNKNOWN
-Author: Adrien Leroy
-Author-email: UNKNOWN
+Home-page: http://github.com/LeroyAdrien/Kython
+Author: Adrien Leroy, Alex Lence, Simon Chardin
+Author-email: leroy.adrien.76@gmail.com
 License: MIT
-Description: UNKNOWN
+Description: University project to understand how to build python libraries while trying to compute and plot Kmer signature from whole genome on the ncbi website
 Platform: UNKNOWN
