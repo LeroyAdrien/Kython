@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import ncbi_genome_download as ngd
 from Bio import SeqIO
-from scipy.stats import chi2_contingency
+from scipy.stats import chisquare
 from scipy.spatial import distance
 
 
@@ -331,47 +331,50 @@ def NeighbourJoining(matrice_df:pd.DataFrame) -> str:
 
 
 def KmerFragment(path,kmer,fragmentSize):
-	dicKmerSignature=KmerSignature(path,kmer,True)
-	dicKmerSignature=dicKmerSignature/np.sum(dicKmerSignature.values)
-	sequence=Read_Sequence(path)
-	listepval = []
-	listepos= []
-	pos=0
-	while pos<len(sequence):
-	        liste.append(pos)
-		print((pos/len(sequence))*100,"%")
-		sequenceFragment=sequence[pos:pos+fragmentSize]
-		seqCut = [sequenceFragment[i:i+kmer] for i in range(len(sequenceFragment)-(kmer-1)) ]
-		dicKmerFragment = CountCuts(seqCut,False)
-		dicComparaison = dicKmerSignature*np.sum(dicKmerFragment.values)
-		resultat,pval = chisquare(np.array(dicKmerFragment.loc[0]),np.array(dicComparaison.loc[0]))
-		listepval.append(pval)
+        dicKmerSignature=KmerSignature(path,kmer,True)
+        dicKmerSignature=dicKmerSignature/np.sum(dicKmerSignature.values)
+        sequence=Read_Sequence(path)
+        listepval = []
+        listepos= []
+        pos=0
+        while pos<len(sequence):
+                listepos.append(pos)
+                print((pos/len(sequence))*100,"%")
+                sequenceFragment=sequence[pos:pos+fragmentSize]
+                seqCut = [sequenceFragment[i:i+kmer] for i in range(len(sequenceFragment)-(kmer-1)) ]
+                dicKmerFragment = Count_Cuts(seqCut,False)
+                dicComparaison = dicKmerSignature*np.sum(dicKmerFragment.values)
+                resultat,pval = chisquare(np.array(dicKmerFragment.loc[0]),np.array(dicComparaison.loc[0]))
+                listepval.append(pval)
 
 
-		if pos+fragmentSize>len(sequence):
-			fragmentSize=len(sequence)-pos
-			pos+=fragmentSize
-		else:
-			pos+=fragmentSize
-	
-	return listepval,listepos
-	
-	
+                if pos+fragmentSize>len(sequence):
+                        fragmentSize=len(sequence)-pos
+                        pos+=fragmentSize
+                else:
+                        pos+=fragmentSize
+
+        return listepval,listepos
+
+
 
 if __name__=="__main__":
         #Test downloading sequences
         #DownloadingSequences('./Bacteria.list','./Archea.list','./refseq/')
         
         #Test Parsing sequences
-        #Parsing_Sequences('./refseq/')
+        #dict=Parsing_Sequences('./refseq/')
         
         #Test KmerSignature
-        #print(KmerSignature('./testGenome.fna',3,True))
+        print(KmerSignature('./testGenome.fna',3,True))
         
         #Test DistanceMatrix
-        testMatrix=DistanceMatrix('./refseq/',3)
-        print(testMatrix)
+        #testMatrix=DistanceMatrix('./refseq/',3)
+        #print(testMatrix)
         
         #Test NeighbourJoining
-        print(NeighbourJoining(testMatrix))
+        #print(NeighbourJoining(testMatrix))
+        
+        #Test Chi2 Computation
+        print(KmerFragment('./testGenome.fna',3,1000))
 
