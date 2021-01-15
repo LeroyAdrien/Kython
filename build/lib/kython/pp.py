@@ -7,14 +7,15 @@ import pandas as pd
 import numpy as np
 import ncbi_genome_download as ngd
 from Bio import SeqIO
-from scipy.stats import chi2_contingency
+from scipy.stats import chisquare
 from scipy.spatial import distance
+from typing import Tuple
 
 
 
 """ Functions written to be used directly by the user:
 
-- DownloadingSequences
+- DownloadSequences
 - KmerSignature
 - DistanceMatrix
 - NeighbourJoining
@@ -26,19 +27,29 @@ from scipy.spatial import distance
 
 """ First Function Downloading the genomes """
 
-def Cleaning_Folder(path):
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            if file.endswith('.gz'):
-                subprocess.run("gunzip "+root+"/"+file+" -f",shell=True)
-            if file=="MD5SUMS":
-                subprocess.run("rm "+root+"/"+file,shell=True)
+def Cleaning_Folder(path:str)->None:
+        """Cleans the folder of all .gz file archives and download recap MD5SUMS"""
+        for root, dirs, files in os.walk(path):
+                for file in files:
+                        if file.endswith('.gz'):
+                                subprocess.run("gunzip "+root+"/"+file+" -f",shell=True)
+                        if file=="MD5SUMS":
+                                subprocess.run("rm "+root+"/"+file,shell=True)
                 
                 
                         
 #Returns a dictionnary: Key: Phylum -> Value Other dictionnary | Organism name -> Path to Proteome and Genome
 
-def Parsing_Sequences(path):
+def ParseSequences(path:str) -> dict:
+    """ Retrieve a dictionnary from a folder containing phylums folder and then organisms folder
+    ex: 
+    *refseq
+        *bacterias
+                *organism1
+                *organism2
+        *archaeas
+                *organism1
+                *organism2 """
     #Dictionnary of all the adresses
     dictGen={}
     #Getting the species names via Regular expression
@@ -70,7 +81,7 @@ def Parsing_Sequences(path):
     
 def List_Missing_Organisms(bacteriaPath, archaeaPath,filePath):
 
-        dictGeneral=Parsing_Sequences(filePath)
+        dictGeneral=ParseSequences(filePath)
         
         print(dictGeneral)
 
@@ -85,10 +96,13 @@ def List_Missing_Organisms(bacteriaPath, archaeaPath,filePath):
         print('Following Archaeas Genomes were not downloaded:','\n')    
         for i in listArchaeas:
                 if i not in dictGeneral['archaea'].keys():
-                        print(i)	
+                        print(i)
+                        
+        return dictGeneral	
                         
 
-def DownloadingSequences(bacteriaPath: str,archaeaPath: str,outputPath: str) -> None:
+def DownloadSequences(bacteriaPath: str,archaeaPath: str,outputPath: str) -> dict:
+        """Download Bacterias Genomes and Archeas Genoms from a list of species and return a dictionnary who links organisms names to genomes files paths"""
 
         bacterias=open(bacteriaPath,'r').readlines()
         archaeas=open(archaeaPath,'r').readlines()
@@ -108,7 +122,8 @@ def DownloadingSequences(bacteriaPath: str,archaeaPath: str,outputPath: str) -> 
                         ngd.download(section='refseq', 
                                      file_formats='fasta',
                                      genera=bacteria, 
-                                     groups='bacteria')
+                                     groups='bacteria',
+                                     output=outputPath)
                 except:
                         print(bacteria+" was not found on NCBI'")
 
@@ -120,16 +135,17 @@ def DownloadingSequences(bacteriaPath: str,archaeaPath: str,outputPath: str) -> 
                         ngd.download(section='refseq', 
                                      file_formats='fasta',
                                      genera=archaea,
-                                     groups='archaea')
+                                     groups='archaea',
+                                     output=outputPath)
                 except:
                         print(archaea+" was not found on NCBI'")
 
         Cleaning_Folder(outputPath)
-        List_Missing_Organisms(bacteriaPath,archaeaPath,outputPath)	
+        dictGeneral=List_Missing_Organisms(bacteriaPath,archaeaPath,outputPath+'/refseq/')	
 
         print('Elapsed time:',time.time()-timeInit)
         
-        return None
+        return dictGeneral
 
 
 """ Retrieve signature """
@@ -158,44 +174,66 @@ def Count_Cuts(listOfSequences,normalized=False):
         else:
                 return df/np.sum(df.values)
                 
-def KmerSignature(path: str,kmer: int,normalized: bool):
-	sequence = Read_Sequence(path)
-	seqCut = [sequence[i:i+kmer] for i in range(len(sequence)-(kmer-1)) ]
-	dicKmer = Count_Cuts(seqCut,normalized)
-	return dicKmer
-	
+def KmerSignature(path: str,kmer: int,normalized: bool) -> pd.DataFrame:
+        """Computes Kmer Signature from a Genomic .fna file (Use ParseSequences function to retrieve all the adresses from a refseq folder if they are already downloaded, else use DownloadSequences first)"""
+        sequence = Read_Sequence(path)
+        seqCut = [sequence[i:i+kmer] for i in range(len(sequence)-(kmer-1)) ]
+        dicKmer = Count_Cuts(seqCut,normalized)
+        return dicKmer
 
 
 
-""" RAJOUTER OPTION POUR TRAITER PHYLUMS SÉPARÉMENTS OU ENSEMBLE"""
-def DistanceMatrix(path:str,kmer:int) -> pd.DataFrame:
-    """Computes Distance matrix from a refseq folder"""
-    start = time.time()
-    pathGenomes=path
-    dictGeneral=Parsing_Sequences(pathGenomes)
-    matrice=[]
-    liste_espece=[]
-    for phylum in list(dictGeneral.keys()):
-        liste_espece+=list(dictGeneral[phylum].keys())
-        num=1
-        for i in dictGeneral[phylum]:
-            print(phylum+" Genome K-mer Computation :",num,"/",len(dictGeneral[phylum]))
-            pathTest=(dictGeneral[phylum][i])
-            dicSeq=KmerSignature(pathTest,kmer,normalized=True)
-            matrice.append(dicSeq)
-            num+=1
-    matrice_Distance=np.zeros((len(matrice),len(matrice)))
-    for i in range(len(matrice)):
-        for j in range(i,len(matrice)):
-            if i!=j:
-                a=matrice[i].values[0]
-                b=matrice[j].values[0]
-                dst = distance.euclidean(a, b)
-                matrice_Distance[i][j]=dst
-                matrice_Distance[j][i]=dst
 
-    matrice_distance_df=pd.DataFrame(data=matrice_Distance,columns=liste_espece,index=liste_espece)
-    return matrice_distance_df
+
+def DistanceMatrix(dictGeneral:dict, kmer:int,phylum:str=None) -> pd.DataFrame:
+        """Computes Distance matrix from a dictionnary of file paths (see ParseSequences), if phylum is specified, compute distance matrix only for specified phylum"""
+        start = time.time()
+        matrice=[]
+        liste_espece=[]
+        if phylum==None: #If Phylum is not specified we parse all existing phylums in the dataset
+                for phylum in list(dictGeneral.keys()):
+                        liste_espece+=list(dictGeneral[phylum].keys())
+                        num=1
+                        for i in dictGeneral[phylum]:
+                                print(phylum+" Genome K-mer Computation :",num,"/",len(dictGeneral[phylum]))
+                                pathTest=(dictGeneral[phylum][i])
+                                dicSeq=KmerSignature(pathTest,kmer,normalized=True)
+                                matrice.append(dicSeq)
+                                num+=1
+                matrice_Distance=np.zeros((len(matrice),len(matrice)))
+                for i in range(len(matrice)):
+                        for j in range(i,len(matrice)):
+                                if i!=j:
+                                        a=matrice[i].values[0]
+                                        b=matrice[j].values[0]
+                                        dst = distance.euclidean(a, b)
+                                        matrice_Distance[i][j]=dst
+                                        matrice_Distance[j][i]=dst
+
+                matrice_distance_df=pd.DataFrame(data=matrice_Distance,columns=liste_espece,index=liste_espece)
+                return matrice_distance_df
+        else:
+                liste_espece+=list(dictGeneral[phylum].keys())
+                num=1
+                for i in dictGeneral[phylum]:
+                        print(phylum+" Genome K-mer Computation :",num,"/",len(dictGeneral[phylum]))
+                        pathTest=(dictGeneral[phylum][i])
+                        dicSeq=KmerSignature(pathTest,kmer,normalized=True)
+                        matrice.append(dicSeq)
+                        num+=1
+                matrice_Distance=np.zeros((len(matrice),len(matrice)))
+                for i in range(len(matrice)):
+                        for j in range(i,len(matrice)):
+                                if i!=j:
+                                        a=matrice[i].values[0]
+                                        b=matrice[j].values[0]
+                                        dst = distance.euclidean(a, b)
+                                        matrice_Distance[i][j]=dst
+                                        matrice_Distance[j][i]=dst
+
+                matrice_distance_df=pd.DataFrame(data=matrice_Distance,columns=liste_espece,index=liste_espece)
+                return matrice_distance_df
+        
 
 
 """Calcul Neighbour Joining"""
@@ -327,20 +365,58 @@ def NeighbourJoining(matrice_df:pd.DataFrame) -> str:
     return arbre
 
 
+"""Chi2 computation"""
+
+
+def SequenceHomogeneity(path:str,kmer:int,fragmentSize:int)-> Tuple[list,list]:
+        """Compute the Homogeneity of a sequence and spots any horizontal transfers """
+        dicKmerSignature=KmerSignature(path,kmer,True)
+        dicKmerSignature=dicKmerSignature/np.sum(dicKmerSignature.values)
+        sequence=Read_Sequence(path)
+        listepval = []
+        listepos= []
+        pos=0
+        while pos<len(sequence):
+                listepos.append(pos)
+                print((pos/len(sequence))*100,"%")
+                sequenceFragment=sequence[pos:pos+fragmentSize]
+                seqCut = [sequenceFragment[i:i+kmer] for i in range(len(sequenceFragment)-(kmer-1)) ]
+                dicSequenceHomogeneity = Count_Cuts(seqCut,False)
+                dicComparaison = dicKmerSignature*np.sum(dicSequenceHomogeneity.values)
+                resultat,pval = chisquare(np.array(dicSequenceHomogeneity.loc[0]),np.array(dicComparaison.loc[0]))
+                listepval.append(pval)
+
+
+                if pos+fragmentSize>len(sequence):
+                        fragmentSize=len(sequence)-pos
+                        pos+=fragmentSize
+                else:
+                        pos+=fragmentSize
+
+        return listepval,listepos
+
+
+
 if __name__=="__main__":
         #Test downloading sequences
-        #DownloadingSequences('./Bacteria.list','./Archea.list','./refseq/')
+        #DownloadSequences('./Bacteria.list','./Archea.list','./')
         
         #Test Parsing sequences
-        #Parsing_Sequences('./refseq/')
+        #dictio=ParseSequences('./refseq/')
         
         #Test KmerSignature
         #print(KmerSignature('./testGenome.fna',3,True))
         
         #Test DistanceMatrix
-        testMatrix=DistanceMatrix('./refseq/',3)
-        print(testMatrix)
+        #testMatrix=DistanceMatrix(dictio,3)
+        #print(testMatrix)
+        
+        #testMatrixPhylum=DistanceMatrix(dictio,3,'bacteria')
+        #print(testMatrixPhylum)
         
         #Test NeighbourJoining
-        print(NeighbourJoining(testMatrix))
+        #print(NeighbourJoining(testMatrix))
+        
+        #Test Chi2 Computation
+        #print(SequenceHomogeneity('./testGenome.fna',3,1000))
 

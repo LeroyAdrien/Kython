@@ -335,9 +335,12 @@ setup.py
 .eggs/toml-0.10.2-py3.8.egg/toml/encoder.py
 .eggs/toml-0.10.2-py3.8.egg/toml/ordered.py
 .eggs/toml-0.10.2-py3.8.egg/toml/tz.py
+kython/Archea.list
+kython/Bacteria.list
 kython/__init__.py
 kython/pl.py
 kython/pp.py
+kython/testGenome.fna
 kython.egg-info/PKG-INFO
 kython.egg-info/SOURCES.txt
 kython.egg-info/dependency_links.txt
