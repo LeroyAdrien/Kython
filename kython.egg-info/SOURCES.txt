@@ -335,6 +335,7 @@ setup.py
 .eggs/toml-0.10.2-py3.8.egg/toml/encoder.py
 .eggs/toml-0.10.2-py3.8.egg/toml/ordered.py
 .eggs/toml-0.10.2-py3.8.egg/toml/tz.py
+__pycache__/setup.cpython-38.pyc
 kython/Archea.list
 kython/Bacteria.list
 kython/__init__.py
