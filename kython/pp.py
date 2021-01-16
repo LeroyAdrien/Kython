@@ -398,14 +398,15 @@ def SequenceHomogeneity(path:str,kmer:int,fragmentSize:int)-> Tuple[list,list]:
 
 
 if __name__=="__main__":
+
         #Test downloading sequences
         #DownloadSequences('./Bacteria.list','./Archea.list','./')
         
         #Test Parsing sequences
-        #dictio=ParseSequences('./refseq/')
+        dictio=ParseSequences('./refseq/')
         
         #Test KmerSignature
-        #print(KmerSignature('./testGenome.fna',3,True))
+        print(KmerSignature('./testGenome.fna',3,True))
         
         #Test DistanceMatrix
         #testMatrix=DistanceMatrix(dictio,3)
@@ -419,4 +420,6 @@ if __name__=="__main__":
         
         #Test Chi2 Computation
         #print(SequenceHomogeneity('./testGenome.fna',3,1000))
+        
+        
 
