@@ -349,6 +349,10 @@ kython.egg-info/requires.txt
 kython.egg-info/top_level.txt
 kython/__pycache__/__init__.cpython-38.pyc
 kython/__pycache__/pp.cpython-38.pyc
+kython/refseq/archaea/GCF_000008665.1/GCF_000008665.1_ASM866v1_genomic.fna
+kython/refseq/archaea/GCF_000011125.1/GCF_000011125.1_ASM1112v1_genomic.fna
+kython/refseq/bacteria/GCF_000018785.1/GCF_000018785.1_ASM1878v1_genomic.fna
+kython/refseq/bacteria/GCF_000022565.1/GCF_000022565.1_ASM2256v1_genomic.fna
 test/__init__.py
 test/test_pl.py
 test/test_pp.py
