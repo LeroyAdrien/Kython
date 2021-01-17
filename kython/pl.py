@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import *
 import numpy as np
 import pandas as pd
+from ete3 import Tree, TreeStyle, AttrFace, faces, NodeStyle
+import os
+
 
 
 
@@ -44,7 +47,7 @@ def KmerSignature(signature_df:pd.DataFrame,organism:str)->None:
   
   
 
-def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organism:str) -> None:
+def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organism:str,kmerSize:int=None) -> None:
         
 
 
@@ -77,8 +80,6 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
                 if pValueList[i]<pValueAccepted:
                         listRedRectangles.append(Rectangle((posList[i]/lengthGenome,startingY), width=(posList[i+1]-posList[i])/lengthGenome,height=redRectanglesHeight,color=redRectanglesColor))
                         
-        print(posList[0])
-        print(posList[-1])
         
         #Ticks
         listTicks=[]
@@ -95,7 +96,7 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
         
         
         #Creating the figure
-        fig=plt.figure(figsize=(100,10))#figsize=(blueRectangleLength*2,blueRectangleHeight*2))
+        fig=plt.figure(figsize=(20,4))#figsize=(blueRectangleLength*2,blueRectangleHeight*2))
         ax=fig.add_subplot(111)
         
         #Annotations
@@ -106,7 +107,9 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
                 
         ax.text(50,2,"Genome Length (pb)",color=ticksColor,ha='center')
         
-        ax.text(75,0,"Percentage of Horizontal transfers: "+str(format(len(listRedRectangles)/(len(listPos)-1),'.2f')),color='black')
+        ax.text(75,0,"Percentage of Horizontal transfers: "+str(format(len(listRedRectangles)/(len(posList)-1),'.2f')),color='black')
+        if kmerSize:
+                ax.text(25,0,"Kmer size: "+str(kmerSize),color='black')
                 
         #Legend
         legend_elements=[Patch(color=blueRectangleColor,label="Corresponding Kmer Signature"),
@@ -135,18 +138,79 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
         plt.show()
 
 
+def GraphTree(treeNewick:str, pathDictionnary:dict, outputPath:str) -> None:
+  """
+  treeNewick: Newick tree format (from NJ function)
+  pathDictionnary: To get the class corresponding to name for coloring
+  outputPath: name to give to the .png tree figure produced
+
+  Coloring: Red = archaea;  Bleu = Bacteria
+  """
+
+  os.environ['QT_QPA_PLATFORM']='offscreen'
+
+  keys_archaea = []
+  for i in list(pathDictionnary['archaea'].keys()):
+    keys_archaea.append(i.replace(' ','_'))
+
+  treeNewick = treeNewick.replace(')((',',(')+'OROOT;'
+  t = Tree(treeNewick, format=1)
+
+  ts = TreeStyle()
+  ts.mode = "c"
+
+  style2 = NodeStyle()
+  style2["fgcolor"] = "#2e3131"
+  style2["vt_line_color"] = "#2e3131"
+  style2["hz_line_color"] = "#2e3131"
+  style2["vt_line_width"] = 20
+  style2["hz_line_width"] = 20
+  style2["vt_line_type"] = 0 
+  style2["hz_line_type"] = 0
+
+  def layout(node):
+    """
+    Hidden function to build the layout of the Tree. Make the coloring of the 
+    leaves according to the class bacteria/archaea
+    """
+    if node.is_leaf():
+        if node.name in keys_archaea:
+          N = AttrFace("name", ftype='Arial', fsize=30, fgcolor='black')
+          N.background.color='Crimson'
+
+        else:
+          N = AttrFace("name", ftype='Arial', fsize=30, fgcolor='black', penwidth=2)
+          N.background.color='CornflowerBlue'
+
+        faces.add_face_to_node(N, node, 0, aligned=True, position="aligned")
+        node.img_style = style2
+
+
+  ts.layout_fn = layout
+  ts.show_leaf_name = False
+
+  t.render(outputPath+'.png', w=1000,tree_style=ts)
+
 
 
 if __name__=='__main__':
+
+        import pp
 
         #Test KmerSignature
         #signature=pp.KmerSignature('./testGenome.fna',3,True)
         #KmerSignature(signature,'Poulet')
 
         #Test Sequence Homogeneity
-        
         #listpVal,listPos=pp.SequenceHomogeneity('./testGenome.fna',5,30000)
-        #SequenceHomogeneity(listpVal,listPos,0.05,'Poulet')
+        #SequenceHomogeneity(listpVal,listPos,0.05,'Poulet',3)
         
+        #Test GraphTree
+        dictio=pp.ParseSequences('./refseq/')
+        print(dictio)
+        
+        testMatrix=pp.DistanceMatrix(dictio,3)
+        tree=pp.NeighbourJoining(testMatrix)
+        GraphTree(tree, dictio,'lolilol.png')
         
         pass

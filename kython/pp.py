@@ -74,8 +74,8 @@ def ParseSequences(path:str) -> dict:
                     match=re.search(regex,lineSpecie).group(1)
                     if match.split(' ')[-1]=='chromosome':
                         match=' '.join(match.split(' ')[:-1])
-                
-                    listNames.append(match)
+                    listNames.append(match.replace(' ','_'))
+
                     
         dictGen[listPhylums[i]]=dict(zip(listNames,listfna))         
         
@@ -381,10 +381,10 @@ def SequenceHomogeneity(path:str,kmer:int,fragmentSize:int)-> Tuple[list,list]:
         pos=0
         
         while pos<len(sequence):
-        
+                """
                 if int(pos/len(sequence)*100)%5==0:
                         print((pos/len(sequence))*100,"%")
-                
+                """
                 #Cuts sequence fragment
                 sequenceFragment=sequence[pos:pos+fragmentSize]
                 seqCut = [sequenceFragment[i:i+kmer] for i in range(len(sequenceFragment)-(kmer-1)) ]
@@ -411,15 +411,14 @@ def SequenceHomogeneity(path:str,kmer:int,fragmentSize:int)-> Tuple[list,list]:
 
         return listepval,listepos
         
-def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str,pValueAccepted:float) -> None:
+def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str,pValueAccepted:float,phylumOfChoice:str=None) -> None:
         """Gather Training Data for neural networks to infer origin from horizontal transfers later on. writes file with phylum_organism.csv with rows of matrix as probability vectors of each possible Kmer"""
-
-        for phylum in dictGeneral.keys():
-                for organism in dictGeneral[phylum].keys():
+        if phylumOfChoice:
+                for organism in dictGeneral[phylumOfChoice].keys():
                 
-                        print("Gathering Traning Data from: ",organism)
-                        globalSignature=KmerSignature(dictGeneral[phylum][organism],kmer,False)
-                        sequence=Read_Sequence(dictGeneral[phylum][organism])
+                        print("Gathering Training Data from: ",organism)
+                        globalSignature=KmerSignature(dictGeneral[phylumOfChoice][organism],kmer,False)
+                        sequence=Read_Sequence(dictGeneral[phylumOfChoice][organism])
                         
                         #List of accepted signatures
                         trainingSignature=[]
@@ -436,7 +435,7 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                                 #Retrieve signature of fragment
                                 fragmentSignature = Count_Cuts(seqCut,False) +1
                                 
-                                #Create contingency table
+                                #Create contingencybof  table
                                 contingency=np.concatenate((globalSignature.values,fragmentSignature.values),axis=0)
                                 
                                 
@@ -465,7 +464,62 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                         
                         print("Number of Samples Gathered:", len(trainingSignature))
                         print("Size of file:", sys.getsizeof(trainingSignature))
-                        np.savetxt(outputPath+'/'+phylum+'_'+organism+'.csv',trainingSignature,delimiter=",")
+                        np.savetxt(outputPath+'/'+phylumOfChoice+'_'+organism+'.csv',trainingSignature,delimiter=",")
+
+        
+        else:
+                for phylum in dictGeneral.keys():
+                        for organism in dictGeneral[phylum].keys():
+                        
+                                print("Gathering Training Data from: ",organism)
+                                globalSignature=KmerSignature(dictGeneral[phylum][organism],kmer,False)
+                                sequence=Read_Sequence(dictGeneral[phylum][organism])
+                                
+                                #List of accepted signatures
+                                trainingSignature=[]
+                                listepos= [0]
+                                pos=0
+                                
+                                while pos<len(sequence):
+
+                                        
+                                        #Cuts sequence fragment
+                                        sequenceFragment=sequence[pos:pos+fragmentSize]
+                                        seqCut = [sequenceFragment[i:i+kmer] for i in range(len(sequenceFragment)-(kmer-1)) ]
+                                        
+                                        #Retrieve signature of fragment
+                                        fragmentSignature = Count_Cuts(seqCut,False) +1
+                                        
+                                        #Create contingencybof  table
+                                        contingency=np.concatenate((globalSignature.values,fragmentSignature.values),axis=0)
+                                        
+                                        
+                                        resultat,pval, dof, expctd = chi2_contingency(contingency)
+                                        
+                                        #If the fragments belongs to the specie
+                                        if pval>pValueAccepted:
+                                                #We compute the normalized signature
+                                                normalizedSignature=fragmentSignature/np.sum(fragmentSignature.values)
+                                                #We convert the signature to a list and put in inside trainingSignature
+                                                trainingSignature.append(normalizedSignature.values[0])
+
+
+                                        if pos+fragmentSize>len(sequence):
+                                                fragmentSize=len(sequence)-pos
+                                                pos+=fragmentSize
+                                        else:
+                                                pos+=fragmentSize
+                                                
+                                        #Add new position
+                                        listepos.append(pos)
+                                        
+                                #We convert the signatures in an array and write it in a file
+                                trainingSignature=np.array(trainingSignature)
+                                
+                                
+                                print("Number of Samples Gathered:", len(trainingSignature))
+                                print("Size of file:", sys.getsizeof(trainingSignature))
+                                np.savetxt(outputPath+'/'+phylum+'_'+organism+'.csv',trainingSignature,delimiter=",")
 
         return None
 
@@ -480,7 +534,7 @@ if __name__=="__main__":
         #dictio=DownloadSequences('./Bacteria.list','./Archea.list','./')
         
         #Test Parsing sequences
-        #dictio=ParseSequences('./refseq/')
+        dictio=ParseSequences('./refseq/')
         
         #Test KmerSignature
         #signature=(KmerSignature('./testGenome.fna',6,True))
@@ -500,7 +554,7 @@ if __name__=="__main__":
         #print(SequenceHomogeneity('./testGenome.fna',3,1000))
         
         #Test Gathering Data
-        #GatherTrainingData(dictio,5,10000,'./',0.05)
+        GatherTrainingData(dictio,5,10000,'./',0.05,'bacteria')
         
         
 

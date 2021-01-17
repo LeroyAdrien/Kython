@@ -1,4 +1,6 @@
+PyQt5
 biopython
+ete3
 matplotlib
 ncbi-genome-download
 numpy

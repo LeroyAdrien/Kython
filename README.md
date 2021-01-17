@@ -25,4 +25,6 @@ pip3 install kython
         * SequenceHomogeneity(path, kmer size, Genomic fragment size)-----------Compute Homgeneiy of sub sequences in the main sequence (using chisquare) and return list of intervals and p-values
         
 * Module pl:
-        
+        * KmerSignature(signature,organism name)--------------------------------Plots a signature in radial coordinates
+        * SequenceHomogeneity(listPvalues,listPositions,pValueAccepted,organism name, kmer size)-Plots the sequence homogeneity
+        * GraphTree(tree in newick format,DictGeneral,outputpath)
