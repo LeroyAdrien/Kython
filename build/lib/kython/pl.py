@@ -147,7 +147,8 @@ def GraphTree(treeNewick:str, pathDictionnary:dict, outputPath:str) -> None:
   Coloring: Red = archaea;  Bleu = Bacteria
   """
 
-  os.environ['QT_QPA_PLATFORM']='offscreen'
+  #os.environ['QT_QPA_PLATFORM']='offscreen'
+  #os.environ['QT_QPA_PLATFORM']='onscreen'
 
   keys_archaea = []
   for i in list(pathDictionnary['archaea'].keys()):
@@ -190,6 +191,8 @@ def GraphTree(treeNewick:str, pathDictionnary:dict, outputPath:str) -> None:
   ts.show_leaf_name = False
 
   t.render(outputPath+'.png', w=1000,tree_style=ts)
+  
+  t.show(tree_style=ts)
 
 
 

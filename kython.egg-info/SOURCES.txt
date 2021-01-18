@@ -347,7 +347,9 @@ kython.egg-info/SOURCES.txt
 kython.egg-info/dependency_links.txt
 kython.egg-info/requires.txt
 kython.egg-info/top_level.txt
+kython/.ipynb_checkpoints/Untitled-checkpoint.ipynb
 kython/__pycache__/__init__.cpython-38.pyc
+kython/__pycache__/pl.cpython-38.pyc
 kython/__pycache__/pp.cpython-38.pyc
 kython/refseq/archaea/GCF_000008665.1/GCF_000008665.1_ASM866v1_genomic.fna
 kython/refseq/archaea/GCF_000011125.1/GCF_000011125.1_ASM1112v1_genomic.fna

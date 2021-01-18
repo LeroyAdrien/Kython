@@ -196,7 +196,6 @@ def DistanceMatrix(dictGeneral:dict, kmer:int,phylum:str=None) -> pd.DataFrame:
                         liste_espece+=list(dictGeneral[phylum].keys())
                         num=1
                         for i in dictGeneral[phylum]:
-                                print(phylum+" Genome K-mer Computation :",num,"/",len(dictGeneral[phylum]))
                                 pathTest=(dictGeneral[phylum][i])
                                 dicSeq=KmerSignature(pathTest,kmer,normalized=True)
                                 matrice.append(dicSeq)
@@ -424,8 +423,9 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                         trainingSignature=[]
                         listepos= [0]
                         pos=0
+                        nbOfSamples=0
                         
-                        while pos<len(sequence):
+                        while pos<len(sequence) and nbOfSamples<=50:
 
                                 
                                 #Cuts sequence fragment
@@ -447,6 +447,7 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                                         normalizedSignature=fragmentSignature/np.sum(fragmentSignature.values)
                                         #We convert the signature to a list and put in inside trainingSignature
                                         trainingSignature.append(normalizedSignature.values[0])
+                                        nbOfSamples+=1
 
 
                                 if pos+fragmentSize>len(sequence):
@@ -464,7 +465,7 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                         
                         print("Number of Samples Gathered:", len(trainingSignature))
                         print("Size of file:", sys.getsizeof(trainingSignature))
-                        np.savetxt(outputPath+'/'+phylumOfChoice+'_'+organism+'.csv',trainingSignature,delimiter=",")
+                        np.savetxt(outputPath+'/'+phylumOfChoice+'_'+organism.replace("/","-")+'.csv',trainingSignature,delimiter=",")
 
         
         else:
@@ -479,8 +480,9 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                                 trainingSignature=[]
                                 listepos= [0]
                                 pos=0
+                                nbOfSamples=0
                                 
-                                while pos<len(sequence):
+                                while pos<len(sequence) and nbOfSamples<=50:
 
                                         
                                         #Cuts sequence fragment
@@ -502,6 +504,7 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                                                 normalizedSignature=fragmentSignature/np.sum(fragmentSignature.values)
                                                 #We convert the signature to a list and put in inside trainingSignature
                                                 trainingSignature.append(normalizedSignature.values[0])
+                                                nbOfSamples+=1
 
 
                                         if pos+fragmentSize>len(sequence):
@@ -519,7 +522,7 @@ def GatherTrainingData(dictGeneral:dict,kmer:int,fragmentSize:int,outputPath:str
                                 
                                 print("Number of Samples Gathered:", len(trainingSignature))
                                 print("Size of file:", sys.getsizeof(trainingSignature))
-                                np.savetxt(outputPath+'/'+phylum+'_'+organism+'.csv',trainingSignature,delimiter=",")
+                                np.savetxt(outputPath+'/'+phylum+'_'+organism.replace("/","-")+'.csv',trainingSignature,delimiter=",")
 
         return None
 
