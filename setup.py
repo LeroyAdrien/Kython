@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(name='kython',
 packages=find_packages(include=['kython']),
-version='1.3.3',
+version='1.4.1',
 description='Python Library to compute and plot phylogeny Kmer signatures',
 author='Adrien Leroy, Alex Lence, Simon Chardin',
 author_email='leroy.adrien.76@gmail.com',

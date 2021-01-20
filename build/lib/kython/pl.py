@@ -47,8 +47,8 @@ def KmerSignature(signature_df:pd.DataFrame,organism:str)->None:
   
   
 
-def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organism:str,kmerSize:int=None) -> None:
-        
+def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organism:str,kmerSize:int=None,annotationList=None) -> None:
+        """Plots the sequence homogeneity on a Custom diagram, must use the results of pp.SequenceHomogeneity to retrieve the results. You can use annotation of the neural network we used in the noteobok to automate the origin of horizontal trasnfers"""
 
 
         #Starting points for shapes
@@ -71,13 +71,20 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
         
         #Creating shapes
         
+        #Annotations
+        
+        
+        
         #Big Rectangle
         blueRectangle=Rectangle((startingX,startingY), width=blueRectangleLength,height=blueRectangleHeight,color=blueRectangleColor)
         
         #Tiny Rectangles
         listRedRectangles=[]
+        listEndPointArrow=[]
+        arrowList=[]
         for i in range(len(pValueList)):
                 if pValueList[i]<pValueAccepted:
+                        listEndPointArrow.append(posList[i]/lengthGenome)
                         listRedRectangles.append(Rectangle((posList[i]/lengthGenome,startingY), width=(posList[i+1]-posList[i])/lengthGenome,height=redRectanglesHeight,color=redRectanglesColor))
                         
         
@@ -100,6 +107,26 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
         ax=fig.add_subplot(111)
         
         #Annotations
+        
+        
+        #Arrows with annotations
+
+        if annotationList:
+                arrowList=[]
+                ax.text(-10,-0.8,"Prediction for horizontal transfers:",color=redRectanglesColor,ha='center')
+                
+                for i in range(len(annotationList)):
+                
+                        #Text
+                        #Quick Linear Interpolation
+                        position=i*(120-5)/(len(annotationList)) + 5
+                        ax.text(position,-0.8,annotationList[i],color=ticksColor,ha='center')
+                        
+                        #Arrows
+                        arrow=Arrow(position,0,listEndPointArrow[i]-position,startingY-0.1,color=redRectanglesColor)
+                        arrowList.append(arrow)
+
+                        
         listAnnotationsPos=np.linspace(0,100,4)
         listAnnotations=[]
         for annotation in listAnnotationsPos:
@@ -107,9 +134,9 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
                 
         ax.text(50,2,"Genome Length (pb)",color=ticksColor,ha='center')
         
-        ax.text(75,0,"Percentage of Horizontal transfers: "+str(format(len(listRedRectangles)/(len(posList)-1),'.2f')),color='black')
+        ax.text(60,10,"Percentage of Horizontal transfers: "+str(format(len(listRedRectangles)/(len(posList)-1),'.2f')),color='black')
         if kmerSize:
-                ax.text(25,0,"Kmer size: "+str(kmerSize),color='black')
+                ax.text(50,10,"Kmer size: "+str(kmerSize),color='black')
                 
         #Legend
         legend_elements=[Patch(color=blueRectangleColor,label="Corresponding Kmer Signature"),
@@ -128,7 +155,10 @@ def SequenceHomogeneity(pValueList:list,posList:list,pValueAccepted:float,organi
                 
         for redRectangle in listRedRectangles:
                 ax.add_patch(redRectangle)
-        
+        if arrowList:
+                for arrow in arrowList:
+                        ax.add_patch(arrow)
+
         #Adjusting ax
         ax.axis("scaled")
         ax.get_yaxis().set_visible(False)
@@ -205,15 +235,14 @@ if __name__=='__main__':
         #KmerSignature(signature,'Poulet')
 
         #Test Sequence Homogeneity
-        #listpVal,listPos=pp.SequenceHomogeneity('./testGenome.fna',5,30000)
-        #SequenceHomogeneity(listpVal,listPos,0.05,'Poulet',3)
+        listpVal,listPos=pp.SequenceHomogeneity('./testGenome.fna',3,100000)
+        SequenceHomogeneity(listpVal,listPos,0.05,'Poulet',3,["plip","plap","plop"])
         
         #Test GraphTree
+        """
         dictio=pp.ParseSequences('./refseq/')
-        print(dictio)
-        
         testMatrix=pp.DistanceMatrix(dictio,3)
         tree=pp.NeighbourJoining(testMatrix)
         GraphTree(tree, dictio,'lolilol.png')
-        
+        """
         pass

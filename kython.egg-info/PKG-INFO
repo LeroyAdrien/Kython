@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: kython
-Version: 1.3.3
+Version: 1.4.1
 Summary: Python Library to compute and plot phylogeny Kmer signatures
 Home-page: http://github.com/LeroyAdrien/Kython
 Author: Adrien Leroy, Alex Lence, Simon Chardin
